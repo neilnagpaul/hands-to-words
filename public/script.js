@@ -15,7 +15,8 @@ hands.setOptions({
 
 document.querySelector("form").onsubmit = async function (e) {
     e.preventDefault()
-    let file = new FormData(this).get("file"),
+    let data = new FormData(this),
+        file = data.get("file"),
         src = URL.createObjectURL(file),
         img = Object.assign(new Image(), { src }),
         canvas = document.createElement("canvas")
@@ -27,13 +28,17 @@ document.querySelector("form").onsubmit = async function (e) {
     hands.send({ image: canvas })
 
     let results = await new Promise(_ => hands.onResults(_)),
-        json = JSON.stringify(Object.assign(results, { image: undefined })),
         input = Object.assign(document.createElement("input"), {
             type: "hidden",
             name: "json",
-            value: json
+            value: JSON.stringify({
+                results: {
+                    ...results,
+                    image: undefined
+                },
+                chereme: data.get("chereme")
+            })
         })
-
     this.append(input)
     this.onsubmit = null
     this.submit()
