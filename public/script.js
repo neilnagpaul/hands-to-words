@@ -11,35 +11,11 @@ hands.setOptions({
     modelComplexity: 1,
     minDetectionConfidence: 0.5,
     minTrackingConfidence: 0.5
-});
+})
 
-document.querySelector("form").onsubmit = async function (e) {
-    e.preventDefault()
-    let data = new FormData(this),
-        file = data.get("file"),
-        src = URL.createObjectURL(file),
-        img = Object.assign(new Image(), { src }),
-        canvas = document.createElement("canvas")
-
-    await new Promise(_ => img.onload = _)
-    canvas.width = img.width
-    canvas.height = img.height
-    canvas.getContext("2d").drawImage(img, 0, 0)
-    hands.send({ image: canvas })
-
-    let results = await new Promise(_ => hands.onResults(_)),
-        input = Object.assign(document.createElement("input"), {
-            type: "hidden",
-            name: "json",
-            value: JSON.stringify({
-                results: {
-                    ...results,
-                    image: undefined
-                },
-                chereme: data.get("chereme")
-            })
-        })
-    this.append(input)
-    this.onsubmit = null
-    this.submit()
-}
+await new Promise(_ => input.onchange = _)
+let src = URL.createObjectURL(...input.files), results
+hands.send({ image: Object.assign(new Image, { src }) })
+results = await new Promise(_ => hands.onResults(_))
+results.image = prompt("Chereme")
+await fetch(`/api?${new URLSearchParams({ json: JSON.stringify(results) })}`)
